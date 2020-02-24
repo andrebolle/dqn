@@ -15,10 +15,15 @@ env.reset()
 # Q-Learning settings
 α = 0.1 # Learning rate
 γ = 0.95 # Discount
-EPISODES = 25000
+
+EPISODES = 3000
+SHOW_EVERY = 500
+
+def goal(s):
+    return s[0] >= env.goal_position
 
 # Converts state to a binned state
-stateDim = [20, 20]
+stateDim = [10, 10]
 binSize = (env.observation_space.high - env.observation_space.low)/stateDim
 print("binSize", binSize)
 
@@ -28,37 +33,42 @@ def binned(state):
 
 Q = np.random.uniform(low=-2, high=0, size=(stateDim + [env.action_space.n]))
 
-# The start state
-s0 = binned(env.reset())
-print("binned start state", s0)
-print(Q[s0])
-print("Argmax", np.argmax(Q[s0]))
+for episode in range(EPISODES):
 
-done = False
-while not done:
-#for _ in range(2):
-    # Pick the best action for this state
-    a = np.argmax(Q[s0])
 
-    # Get new state (s1) and reward (r)
-    s1_raw, r, done, _ = env.step(a)
-    s1 = binned(s1_raw)
-    # print(r, s1, done)
-
-    env.render()
-
-    if not done:
-        # max_future_Q = np.max(Q[s1])
-        q0 = Q[s0 + (a,)]
-        q1 = (1-α) * q0 + α * (r + γ * np.max(Q[s1]))
-
-        # Update Q-table
-        Q[s0+(a,)] = q1
-    elif s1_raw[0] >= env.goal_position:
-        Q[s0 + (a,)] = 0
+    if episode % SHOW_EVERY == 0:
+        render = True
+        print(episode)
+    else:
+        render = False
     
-    # Update new state
-    s0 = s1
+    # ------------------- An Episode -------------------------
+
+    # The start state
+    s0 = binned(env.reset())
+
+    done = False
+    while not done:
+        # Pick the best action for this state
+        a = np.argmax(Q[s0])
+
+        # Get new state (s1) and reward (r)
+        s1_raw, r, done, _ = env.step(a)
+        s1 = binned(s1_raw)
+
+        # Render once every now and again
+        if render:
+            env.render()
+
+        if not done:
+            Q[s0+(a,)] = (1-α) * Q[s0 + (a,)] + α * (r + γ * np.max(Q[s1]))
+            # Q[s0+(a,)] = Q[s0 + (a,)] + α * (r + γ * np.max(Q[s1]))
+        elif goal(s1_raw):
+            Q[s0 + (a,)] = 0
+        
+        # Update new state
+        s0 = s1
+    # -----------------------------------------------------
 
 env.close()
 print("done")
