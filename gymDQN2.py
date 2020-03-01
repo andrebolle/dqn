@@ -1,12 +1,40 @@
-import gym
 import numpy as np
-import os
 
-import matplotlib.pyplot as plt
+
+import gym
 
 import sys
+import os
+
 print("Hi")
 print(sys.getdefaultencoding())
+
+# Number of bins per state variable
+bins = [10, 10]
+
+# ------------------------------- Start of Plot Animation --------------------
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from mpl_toolkits.mplot3d import axes3d
+
+fig = plt.figure()
+ax = axes3d.Axes3D(fig)
+
+xs = np.arange(0, bins[0], 1)
+ys = np.arange(0, bins[1], 1)
+
+print(xs,ys)
+xx, yy = np.meshgrid(xs, ys)
+
+plt.plot(xx, yy, marker='.', color='k', linestyle='none')
+ax.plot_wireframe(xx, yy, xx+yy, rstride=2, cstride=2)
+# z = np.sin(xx**2 + yy**2) / (xx**2 + yy**2)
+# h = plt.contourf(xs,ys,z)
+plt.show()
+
+sys.exit()
+
+# ------------------------------- End of Plot Animation --------------------
 
 env = gym.make("MountainCar-v0")
 env.reset()
@@ -23,14 +51,13 @@ env.reset()
 α = 0.1 # Learning rate
 γ = 0.95 # Discount
 
-EPISODES = 3000
-SHOW_EVERY = 500
+EPISODES = 1000
+SHOW_EVERY = 100
 
 def goal(s):
     return s[0] >= env.goal_position
 
-# Number of bins per state variable
-bins = [10, 10]
+
 
 binSize = (env.observation_space.high - env.observation_space.low)/bins
 print("binSize", binSize)
